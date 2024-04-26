@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:prova_expermed/colors/app_colors.dart';
 import 'package:prova_expermed/components/calendar_components/hour_name_widget.dart';
+import 'package:prova_expermed/data/models/login_model.dart';
+import 'package:prova_expermed/screens/cadastro_alteracao_consulta_screen.dart';
 import 'package:prova_expermed/screens/info_person.dart';
+import 'package:prova_expermed/services/shared_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 // Esta tela exibirá o calendário e indicará os dias em que a pessoa possui ou não possui agendamentos.
@@ -17,6 +20,15 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime today = DateTime.now();
+  SharedPref sharedPref = SharedPref();
+  LoginModel? user;
+
+  @override
+  void initState() {
+    super.initState();
+
+    getUser();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,18 +38,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Center(
-                child: Text(
-                  "Olá, [nome do usuário logado]",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text(
+                      "Olá, ${user?.name ?? 'Usuário'}",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                IconButton(
+                  icon: Icon(Icons.add), // Ícone de adição
+                  onPressed: () {
+                    // Ao pressionar o botão de adição, navegue para a tela de cadastro
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CadastroAlteracaoConsultaScreen(
+                                user: user,
+                                label: 'Cadastro',
+                              )),
+                    );
+                  },
+                )
+              ],
             ),
             Container(
               decoration: BoxDecoration(
@@ -207,6 +238,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 HourName(
                   label: '17:00 - Pedro Pedroso',
+                  deleteFunc: () {},
+                  editFunc: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CadastroAlteracaoConsultaScreen(
+                              user: user, label: 'Alteração')),
+                    );
+                  },
                   func: () {
                     Navigator.push(
                       context,
@@ -219,6 +259,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 const SizedBox(height: 10.0),
                 HourName(
                   label: '17:00 - Pedro Pedroso',
+                  deleteFunc: () {},
+                  editFunc: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CadastroAlteracaoConsultaScreen(
+                              user: user, label: 'Alteração')),
+                    );
+                  },
                   func: () {
                     Navigator.push(
                       context,
@@ -234,5 +283,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
     );
+  }
+
+  void getUser() async {
+    final response = await sharedPref.read('login');
+    if (response != null) {
+      // Verifica se a resposta não é nula
+      LoginModel loginModel = LoginModel.fromJson(response);
+      setState(() {
+        user = loginModel;
+      });
+    } else {
+      // Trate o caso em que não há dados salvos com a chave 'login' ou os dados não são do tipo esperado, acabei tratando no widget mesmo
+    }
   }
 }

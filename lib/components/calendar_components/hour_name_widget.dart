@@ -4,10 +4,16 @@ import 'package:prova_expermed/colors/app_colors.dart';
 
 class HourName extends StatelessWidget {
   // Esta tela exibe o label como os dados do usuário
-// A func recebe a função para trocar de tela.
+  // A func recebe a função para trocar de tela.
   var label;
   var func;
-  HourName({@required this.label, @required this.func});
+  var editFunc;
+  var deleteFunc;
+  HourName(
+      {@required this.label,
+      @required this.editFunc,
+      @required this.func,
+      @required this.deleteFunc});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +31,24 @@ class HourName extends StatelessWidget {
             bottom: BorderSide(width: 1, color: Colors.black),
           ),
         ),
-        child: Text(
-          ' $label',
-          style: TextStyle(fontSize: 16, color: AppColors.textColor),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                ' $label',
+                style: TextStyle(fontSize: 16, color: AppColors.textColor),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.edit, color: AppColors.textColor),
+              onPressed: editFunc,
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: AppColors.textColor),
+              onPressed: deleteFunc,
+            ),
+          ],
         ),
       ),
     );

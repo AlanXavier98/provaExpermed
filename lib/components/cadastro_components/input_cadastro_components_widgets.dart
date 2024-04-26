@@ -1,0 +1,57 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:prova_expermed/colors/app_colors.dart';
+
+class InputWidgetCadastro extends StatefulWidget {
+  // label é o texto que vai se mostrado no input antes de digitar algo
+  var label;
+  // ctrl é a controladora que o input vai ganhar para ela, cada uma tem o seu controller
+  var ctrl;
+  // isPass é para verificar se o input é para a senha ou não, se for ele é alterado para input de senha
+  var isFixo;
+
+  InputWidgetCadastro(
+      {@required this.ctrl, @required this.label, @required this.isFixo});
+
+  @override
+  State<InputWidgetCadastro> createState() => _InputWidgetCadastroState();
+}
+
+class _InputWidgetCadastroState extends State<InputWidgetCadastro> {
+  bool obscureText = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 0, left: 16, right: 16, bottom: 0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            AppColors.linearGradientColorPrimary,
+            AppColors.linearGradientColorSecondary
+          ],
+        ),
+      ),
+      margin: EdgeInsets.only(bottom: 15.0),
+      child: TextFormField(
+        controller: widget.ctrl,
+        onChanged: (value) {
+          widget.ctrl.text = value;
+        },
+        style: TextStyle(color: Colors.white),
+        enabled: !widget
+            .isFixo, // Se isFixo for true, o TextFormField será desabilitado
+        decoration: InputDecoration(
+          hintText: widget.label,
+          hintStyle: TextStyle(color: AppColors.textColor),
+          border: InputBorder.none,
+          contentPadding:
+              EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+        ),
+      ),
+    );
+  }
+}

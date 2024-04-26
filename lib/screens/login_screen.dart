@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
+import 'package:prova_expermed/data/http/http.dart';
+import 'package:prova_expermed/data/models/login_model.dart';
+import 'package:prova_expermed/data/repositories/login_repositories.dart';
 import 'package:prova_expermed/colors/app_colors.dart';
 import 'package:prova_expermed/components/login_components/input_component_widget.dart';
 import 'package:prova_expermed/components/login_components/logo_component_widget.dart';
 import 'package:prova_expermed/screens/calendar_screen.dart';
+import 'package:prova_expermed/services/shared_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // A tela de login possui a função para exibir a senha digitada ao clicar no ícone de olho.
 // Ao tentar clicar em "Acessar" sem inserir nenhum dado, exibe uma mensagem de erro.
@@ -16,7 +20,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool isLoading = false;
   bool _obscureText = true;
+  SharedPref sharedPref = SharedPref();
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   @override
@@ -80,22 +86,27 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Access Button
                   GestureDetector(
                     onTap: () {
-                      // Aqui é apenas um exemplo simples, mas seria necessário criar uma função para verificar se o e-mail está preenchido corretamente e se a senha é realmente uma senha e não apenas espaços vazios.
-                      if (passwordController.text == "" ||
-                          emailController.text == "") {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('E-mail ou senha incorretos'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CalendarScreen(),
-                          ),
-                        );
+                      if (isLoading != true) {
+                        setState(() {
+                          isLoading = !isLoading;
+                        });
+                        if (emailController.text.isEmpty ||
+                            passwordController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Center(
+                                child: Text(
+                                    'Favor preencher os campos de E-mail e senha.'),
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          setState(() {
+                            isLoading = !isLoading;
+                          });
+                        } else {
+                          loginUser();
+                        }
                       }
                     },
                     child: Container(
@@ -113,14 +124,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-                      child: const Center(
-                        child: Text(
-                          'Acessar',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Center(
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20.0,
+                                height: 20.0,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.textColor,
+                                ),
+                              )
+                            : const Text(
+                                'Acessar',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -131,5 +150,34 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> loginUser() async {
+    final repository = LoginRepositories(client: Login());
+    try {
+      final loginModel = await repository.getLogin(
+          email: emailController.text, pass: passwordController.text);
+      await sharedPref.save('login', loginModel);
+      setState(() {
+        isLoading = !isLoading;
+      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CalendarScreen(),
+        ),
+      );
+      //final teste = await sharedPref.read('login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(child: Text('Usuário e senha inválidos')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      setState(() {
+        isLoading = !isLoading;
+      });
+    }
   }
 }
